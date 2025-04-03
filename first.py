@@ -1,66 +1,44 @@
-import requests
-import matplotlib.pyplot as plt
-from datetime import datetime
-
-API_KEY = "your_api_key_here"  # Replace with your OpenWeatherMap API key
-BASE_URL = "http://api.openweathermap.org/data/2.5/forecast"
-
-def get_weather_forecast(city):
-    """Fetch 5-day weather forecast data from OpenWeatherMap API."""
-    params = {
-        "q": city,
-        "appid": API_KEY,
-        "units": "metric",
-        "cnt": 5  # Fetching data for the next 5 timestamps
-    }
-    
-    response = requests.get(BASE_URL, params=params)
-    
-    if response.status_code == 200:
-        data = response.json()
-        forecast_data = []
-        
-        for item in data["list"]:
-            date = datetime.utcfromtimestamp(item["dt"]).strftime('%Y-%m-%d %H:%M')
-            temp = item["main"]["temp"]
-            humidity = item["main"]["humidity"]
-            forecast_data.append((date, temp, humidity))
-        
-        return forecast_data
-    else:
-        return None
-
-def plot_forecast(forecast_data, city):
-    """Plot temperature and humidity trends."""
-    dates = [item[0] for item in forecast_data]
-    temps = [item[1] for item in forecast_data]
-    humidities = [item[2] for item in forecast_data]
-
-    plt.figure(figsize=(10, 5))
-
-    # Temperature Plot
-    plt.plot(dates, temps, marker='o', linestyle='-', color='r', label='Temperature (°C)')
-    
-    # Humidity Plot
-    plt.plot(dates, humidities, marker='s', linestyle='-', color='b', label='Humidity (%)')
-
-    plt.xlabel("Date & Time")
-    plt.ylabel("Values")
-    plt.title(f"5-Day Weather Forecast for {city}")
-    plt.xticks(rotation=45)
-    plt.legend()
-    plt.grid()
-    plt.show()
-
-if __name__ == "__main__":
-    city_name = input("Enter city name: ")
-    forecast = get_weather_forecast(city_name)
-
-    if forecast:
-        print(f"Weather Forecast for {city_name}:")
-        for date, temp, humidity in forecast:
-            print(f"{date} - Temp: {temp}°C, Humidity: {humidity}%")
-        
-        plot_forecast(forecast, city_name)
-    else:
-        print("Error fetching weather data. Please check your city name and API key.")
+from random import randrange
+from turtle import *
+from freegames import square, vector
+food = vector(0, 0)
+snake = [vector(10, 0)]
+aim = vector(0, -10)
+def change(x, y):
+ "Change snake direction."
+ aim.x = x
+ aim.y = y
+def inside(head):
+ "Return True if head inside boundaries."
+ return -200 < head.x < 190 and -200 < head.y < 190
+def move():
+ "Move snake forward one segment."
+head = snake[-1].copy()
+ head.move(aim)
+ if not inside(head) or head in snake:
+ square(head.x, head.y, 9, 'red')
+ update()
+ return
+ snake.append(head)
+ if head == food:
+ print('Snake:', len(snake))
+ food.x = randrange(-15, 15) * 10
+ food.y = randrange(-15, 15) * 10
+ else:
+ snake.pop(0)
+ clear()
+ for body in snake:
+ square(body.x, body.y, 9, 'black')
+ square(food.x, food.y, 9, 'green')
+ update()
+ ontimer(move, 100)
+setup(420, 420, 370, 0)
+hideturtle()
+tracer(False)
+listen()
+onkey(lambda: change(10, 0), 'Right')
+onkey(lambda: change(-10, 0), 'Left')
+onkey(lambda: change(0, 10), 'Up')
+onkey(lambda: change(0, -10), 'Down')
+move()
+done()
