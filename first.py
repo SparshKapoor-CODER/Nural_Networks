@@ -1,49 +1,66 @@
-inputs = [1 , 2 , 3, 2.5]  # intializing input values for a neural network
+import requests
+import matplotlib.pyplot as plt
+from datetime import datetime
 
+API_KEY = "your_api_key_here"  # Replace with your OpenWeatherMap API key
+BASE_URL = "http://api.openweathermap.org/data/2.5/forecast"
 
+def get_weather_forecast(city):
+    """Fetch 5-day weather forecast data from OpenWeatherMap API."""
+    params = {
+        "q": city,
+        "appid": API_KEY,
+        "units": "metric",
+        "cnt": 5  # Fetching data for the next 5 timestamps
+    }
+    
+    response = requests.get(BASE_URL, params=params)
+    
+    if response.status_code == 200:
+        data = response.json()
+        forecast_data = []
+        
+        for item in data["list"]:
+            date = datetime.utcfromtimestamp(item["dt"]).strftime('%Y-%m-%d %H:%M')
+            temp = item["main"]["temp"]
+            humidity = item["main"]["humidity"]
+            forecast_data.append((date, temp, humidity))
+        
+        return forecast_data
+    else:
+        return None
 
-#initialising weights
-weights1 = [0.2 , 0.8 , -0.6, 1.0]
-weights2 = [0.5 , 0.91 , -0.87, 0.5]
-weights3 = [0.26 , 0.27 , 0.17, 0.93]
+def plot_forecast(forecast_data, city):
+    """Plot temperature and humidity trends."""
+    dates = [item[0] for item in forecast_data]
+    temps = [item[1] for item in forecast_data]
+    humidities = [item[2] for item in forecast_data]
 
+    plt.figure(figsize=(10, 5))
 
+    # Temperature Plot
+    plt.plot(dates, temps, marker='o', linestyle='-', color='r', label='Temperature (°C)')
+    
+    # Humidity Plot
+    plt.plot(dates, humidities, marker='s', linestyle='-', color='b', label='Humidity (%)')
 
-# initialising biases
-biase1 = 2
-biase2 = 3
-biase3 = 0.51
+    plt.xlabel("Date & Time")
+    plt.ylabel("Values")
+    plt.title(f"5-Day Weather Forecast for {city}")
+    plt.xticks(rotation=45)
+    plt.legend()
+    plt.grid()
+    plt.show()
 
+if __name__ == "__main__":
+    city_name = input("Enter city name: ")
+    forecast = get_weather_forecast(city_name)
 
-
-
-# calculating the value of an hidden layer  
-# value = input * weight  + bias
-hidden = [ (inputs[0]*weights1[0] + inputs[1]*weights1[1] + inputs[2]*weights1[2] + inputs[3]*weights1[3] + biase1) , 
-          (inputs[0]*weights2[0] + inputs[1]*weights2[1] + inputs[2]*weights2[2] + inputs[3]*weights2[3] + biase2) , 
-          (inputs[0]*weights3[0] + inputs[1]*weights3[1] + inputs[2]*weights3[2] + inputs[3]*weights3[3] + biase3) ]
-
-
-
-# printing the values of hidden layer
-print(hidden)   
-
-
-
-# initializing weightes of hidden layer
-hiddenweights = [0.989 , 0.87, 0.265]
-
-
-# initializing bias of hidden layer
-hiddenbias = 5
-
-
-
-# calculating output
-output = hidden[0]*hiddenweights[0] + hidden[1]*hiddenweights[1] + hidden[2]*hiddenweights[2]  + hiddenbias
-
-
-
-
-# printing output
-print(output)
+    if forecast:
+        print(f"Weather Forecast for {city_name}:")
+        for date, temp, humidity in forecast:
+            print(f"{date} - Temp: {temp}°C, Humidity: {humidity}%")
+        
+        plot_forecast(forecast, city_name)
+    else:
+        print("Error fetching weather data. Please check your city name and API key.")
